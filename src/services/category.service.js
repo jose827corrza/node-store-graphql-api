@@ -37,6 +37,7 @@ class CategoryService {
     return { id };
   }
 
+
 }
 
 module.exports = CategoryService;
