@@ -1,16 +1,21 @@
 scalar CategoryNameType
 
 type Query {
+    "First query in Graphql 7w7 store API"
     hello: String
     #  Products
+    "Returns a specific product searched by its ID"
     product(id: ID!): Product
+    "Returns all the products in the store"
     allProducts: [Product!]! # No retorne nulos ni que hayan nulos en la lista
+    "Returns all the categories of products in the store"
     allCategories: [Category!]!
+    "Returns a specific category searched by its ID"
     categoryById(id: ID!): Category
   }
 "This is the product data shape of platzi store, we can specify as much as we want . . . "
 type Product {
-  "Auto generated Id"
+  "Unique Auto generated Id"
   id: ID!
   "Name of the product"
   name:String!
@@ -22,55 +27,83 @@ type Product {
   image: URL!
   "Stores the product creation date"
   createdAt: String!
+  "Category Id where the product belongs"
   categoryId: ID!
+  "Category which the product belongs"
   category: Category!
 }
 
 type Category {
+  "Unique Auto generated Id"
   id: ID!
+  "Name of the category"
   name: CategoryNameType!
+  "Category image URL"
   image: URL!
+  "A list of products that belong to the specific category"
   products: [Product!]!
 }
 
 type AuthResponse {
+  "Access token provided to the user by the server"
   access_token: String!
+  "Users found"
   user: User!
 }
 
 type User {
+  "Unique Auto generated Id"
   id: ID!
+  "Unique email related to the user"
   email: EmailAddress!
+  "Role that the user has on the system. [admin, seller, customer]"
   role: String!
+  "Date where the category was created"
   createdAt: String!
 }
 
 type Mutation {
   "Allows to create a new product in the store using Graphql"
   addProduct(dto: CreateProductDto!): Product
+  "Returns an auth response that contains the access_token to use as JWT"
   login(email: EmailAddress!, password: String!):AuthResponse
+  "Updates info about the product with the specific ID"
   updateProduct(id: ID!, dto: UpdateProductDto!): Product
+  "Delete a specific product with the id provided"
   deleteProduct(id: ID!): ID
+  "Creates a new category, must be enroled as admin"
   addCategory(dto: CreateCategoryDto!): Category
 }
 
 input CreateCategoryDto {
+  "Name of the new category, bust be larger than 3 and shorter than 15 characters"
   name: CategoryNameType!
+  "Contains the url of an image about the category"
   image: URL!
 }
 
 input CreateProductDto {
+  "Name of the product"
   name: String!
+  "Price of the product in the store"
   price: Float!
+  "A brief description about the product"
   description: String!
+  "Contains the url of an image about the product"
   image: URL!
+  "Category Id where the product belongs"
   categoryId: ID!
 }
 
 input UpdateProductDto {
+  "Name of the product"
   name: String
+  "Price of the product in the store"
   price: Float
+  "A brief description about the product"
   description: String
+  "Contains the url of an image about the product"
   image: String
+  "Category Id where the product belongs"
   categoryId: ID
 }

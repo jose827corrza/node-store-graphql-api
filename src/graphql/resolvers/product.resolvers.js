@@ -1,33 +1,43 @@
+const boom = require('@hapi/boom')
+
+const checkRolesGql = require('../../utils/checkRolesGpl')
+const checkJwtGql = require('../../utils/checkJwtGpl')
 const ProductService = require('../../services/product.service')
 const service = new ProductService();
 
 const getProduct = async (_, { id }) => {
     return await service.findOne(id);
-  // return {
-  //   id,
-  //   name: 'iPhone',
-  //   price: 2699000.00,
-  //   description: 'gomeliando',
-  //   image: 'https://image.assas',
-  //   createdAt: new Date().toISOString(),
-  // }
 }
 
 const getProducts = async () => {
-  // return [];
-  return await service.find({});
+  return await service.find();
 }
 
-const addProduct = async (_, { dto }) => {
+const addProduct = async (_, { dto }, context) => {
+  const user = await checkJwtGql(context);
+  if (!user){
+    throw boom.unauthorized('JWT is not valid');
+  }
+  checkRolesGql(user, 'admin')
   const newProduct = await service.create(dto);
   return newProduct;
 }
 
-const updateProduct = async (_, {id, dto}) => {
+const updateProduct = async (_, {id, dto}, context) => {
+  const user = await checkJwtGql(context);
+  if (!user){
+    throw boom.unauthorized('JWT is not valid');
+  }
+  checkRolesGql(user, 'admin')
   return await service.update(id, dto);
 }
 
-const deleteProduct = async (_, { id }) => {
+const deleteProduct = async (_, { id }, context) => {
+  const user = await checkJwtGql(context);
+  if (!user){
+    throw boom.unauthorized('JWT is not valid');
+  }
+  checkRolesGql(user, 'admin')
   await service.delete(id);
   return id;
 }
