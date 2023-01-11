@@ -11,7 +11,7 @@ const { login } = require('./auth.resolvers');
 const { addCategory, allCategories, categoryById } = require('./category.resolvers');
 
 // Regular expression that checks if the string is min 3
-const CategoryNameType = new RegularExpression('CategoryNameType', /^[a-zA-Z0-9]{3,15}$/)
+const CategoryNameType = new RegularExpression('CategoryNameType', /^[a-zA-Z0-9]{3,25}$/)
 
 const resolvers = {
   Query: {

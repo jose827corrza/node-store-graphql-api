@@ -10,7 +10,7 @@ const getProduct = async (_, { id }) => {
 }
 
 const getProducts = async () => {
-  return await service.find();
+  return await service.find({});
 }
 
 const addProduct = async (_, { dto }, context) => {
