@@ -14,7 +14,7 @@ externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
-  - url: https://petstore3.swagger.io/api/v3
+  - url: https://node-store-graphql-api-production.up.railway.app
 tags:
   - name: Products
     description: Everything about products in the ecommerce.
