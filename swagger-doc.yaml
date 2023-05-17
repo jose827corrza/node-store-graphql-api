@@ -1,0 +1,1525 @@
+openapi: 3.0.3
+info:
+  title: Store REST/Graphql API - OpenAPI 3.0
+  description: |-
+    This is the technical documentation about the service developed in Node that has several layers such as data input validation, error handlers, model schemas, it was designed as a MVC architecture, the v1.0.0 has no authentication or authorization layer, nevertheless this will going to be deployed by v1.0.0, as DB it uses a Postgres db hosted by Railway as well.  This has been developed as learning purposes.
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: jose.corrzadeveloper@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 0.0.1
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: Products
+    description: Everything about products in the ecommerce.
+    # externalDocs:
+    #   description: Find out more
+    #   url: http://swagger.io
+  - name: Users
+    description: Access over the users of the ecommerce.
+  - name: Categories
+    description: Big groups of prodcuts.
+  - name: Orders
+    description: Represents a list of products to be buy, relacionated with a user/customer.
+  - name: Customers
+    description: Corresponds to the opertions over the user-s accounts.
+  - name: Authorization
+    description: Two capabilities able to make a login for the user, this will return a JWT that will be used for acess to certain services, such as create products, delete users or create categories. Besides, it allows to recovery the password if the user forgets it.
+paths:
+  /api/v1/categories:
+    post:
+      tags:
+      - Categories
+      summary: Creates a category
+      description: Creates a new category to group several products.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/categoryRequest'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/categoryResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    get:
+      tags:
+      - Categories
+      summary: List of categories.
+      description: Return a list of all categories.
+      responses:
+        200:
+          description: List of categories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/getCategory'
+  /api/v1/categories/{categoryId}:
+    delete:
+      tags:
+      - Categories
+      summary: Delete a category
+      description: Delete the category with the given id
+      parameters:
+        - name: categoryId
+          in: path
+          description: 'ID of the category in the database'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                type: string
+                example: 3
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '404':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    patch:
+      tags:
+      - Categories
+      summary: Update a category
+      description: Update the category with the given id
+      parameters:
+        - name: categoryId
+          in: path
+          description: 'ID of the category in the database'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/categoryUpdate'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getSpecificCategory'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '404':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    get:
+      tags:
+      - Categories
+      summary: Returns a specific category
+      description: Return a category by the given id.
+      parameters:
+        - name: categoryId
+          in: path
+          description: 'ID of the category in the database'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of categories.
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/getCategory'
+        '404':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+  /api/v1/products:
+    post:
+      tags:
+      - Products
+      summary: Creates a new product
+      description: Allows to create a new prduct in the database, only admin authenticated can do that.
+      requestBody:
+        content:
+          application/body:
+            schema:
+              $ref: '#/components/schemas/productRequest'
+      responses:
+        '201':
+          description: Return created product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productResponse'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    get:
+      tags:
+      - Products
+      summary: Returns all the products in the DB.
+      description: This response can be filtered  by using the limit or offset query params.
+      parameters:
+        - in: query
+          name: limit
+          description: How many products want to be displayed
+          schema:
+            type: integer
+            description: Set the max number of product to be displayed.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: Set the starting point for a pagintation process.
+      responses:
+        '200':
+          description: Everything went well.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productResponse'
+  /api/v1/products/{productId}:
+    patch:
+      tags:
+      - Products
+      summary: Updates a product
+      description: Allows to changes some value for the specific product
+      parameters:
+        - in: path
+          name: productId
+          description: ID of the product to be updated.
+          schema:
+            type: string
+            example: 3
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateProduct'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '404':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    delete:
+      tags:
+      - Products
+      summary: Delete a product
+      description: Delete the product with the given id
+      parameters:
+        - name: productId
+          in: path
+          description: 'ID of the product in the database'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                type: string
+                example: 3
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '404':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    get:
+      tags:
+      - Products
+      summary: Gets product info
+      description: Get the info of an especific product with it's id.
+      parameters:
+        - in : path
+          name: productId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Return the product info.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productResponse'
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+  /api/v1/customers:
+    get:
+      tags:
+      - Customers
+      summary: Returns a list of all customers
+      description: The list returns all the info of the customers, including the user info for the related customer
+      responses:
+        '200':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/customerResponse'
+    post:
+      tags:
+      - Customers
+      summary: Create a new customer
+      description: Creates a new customer into the database, it sets automatically the role "customer"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createCustomer'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/customerResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+  /api/v1/customers/{customerId}:
+    delete:
+      tags:
+      - Customers
+      summary: Deletes a customer
+      description: Deletes the customer with the given id.
+      parameters:
+        - in: path
+          name: customerId
+          description: 'ID of the customer in the database'
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Customer deleted
+          content:
+            application/json:
+              schema:
+                type: string
+                example: 3
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '404':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+    get:
+      tags:
+      - Customers
+      summary: Returns a customer
+      description: Returns all the info of the customers, including the user info for the related customer
+      parameters:
+        - in: path
+          name: customerId
+          description: 'ID of the customer in the database'
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/customerResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+  /api/v1/users:
+    get:
+      tags:
+      - Users
+      summary: Get a list of all users
+      description: Returns a list that contains the whole information of each user
+      responses:
+        '200':
+          description: Everything went well.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/userEntireResponse'
+    post:
+      tags:
+      - Users
+      summary: Creates a new user
+      description: Creates an new user, usually used to enroll new admins.
+      deprecated: true
+      responses:
+        '201':
+          description: Everything went well.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: OK
+  /api/v1/orders:
+    post:
+      tags:
+      - Orders
+      summary: Create a order list for a customer
+      description: For a given customer an order is created to contain the shopping cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/newOrder'
+      responses:
+        '201':
+          description: Returns information about the new order for the specific customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/orderResponse'
+  /api/v1/orders/add-item:
+    post:
+      tags:
+      - Orders
+      summary: Add a product to the order
+      description: Adds a product and its quantity to the specific order related to a customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addItemRrequest'
+      responses:
+        '200':
+          description: Product was successfully added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/addedItem'
+  /api/v1/orders/{orderId}:
+    get:
+      tags:
+      - Orders
+      summary: Obtain the summary or the order
+      description: Obtains all the information about the order related to the given order id
+      parameters:
+        - in: path
+          name: orderId
+          description: ID of the order in the database
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Returned the information of the given order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/orderInfo'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+  /api/v1/auth/recovery:
+    post:
+      tags:
+      - Authorization
+      summary: Recovery password
+      description: Sends a recovery password to the user specified email whether it exists in the database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recoveryRequest'
+      responses:
+        '201':
+          description: Recovery
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/customerResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+  /api/v1/auth/change-password:
+    post:
+      tags:
+      - Authorization
+      summary: Change user's password
+      description: Change the current password in the database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/changePsswdRequest'
+      responses:
+        '201':
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/customerResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badRequest'
+        '401':
+          description: Not authorized
+          content:
+            application/text:
+              schema:
+                type: string
+                example: Unauthorized
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFound'
+
+
+  /pet:
+    put:
+      tags:
+        - pet
+      summary: Update an existing pet
+      description: Update an existing pet by Id
+      operationId: updatePet
+      requestBody:
+        description: Update an existent pet in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Pet'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Pet'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Pet not found
+        '405':
+          description: Validation exception
+    post:
+      tags:
+        - pet
+      summary: Add a new pet to the store
+      description: Add a new pet to the store
+      operationId: addPet
+      requestBody:
+        description: Create a new pet in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Pet'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Pet'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '405':
+          description: Invalid input
+  /user/login:
+    get:
+      tags:
+        - user
+      summary: Logs user into the system
+      description: ''
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: false
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/xml:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Invalid username/password supplied
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      description: ''
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+  /user/{username}:
+    get:
+      tags:
+        - user
+      summary: Get user by user name
+      description: ''
+      operationId: getUserByName
+      parameters:
+        - name: username
+          in: path
+          description: 'The name that needs to be fetched. Use user1 for testing. '
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+    put:
+      tags:
+        - user
+      summary: Update user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+        - name: username
+          in: path
+          description: name that need to be deleted
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent user in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        default:
+          description: successful operation
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: path
+          description: The name that needs to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+components:
+  schemas:
+    changePsswdRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInJvbGUiOiJhZG1pbiIsImlhdCI6MTY3MzI4NDAyM30.KXB5xPINIwUecZY8ik9ul8RuULSK1_vS1HkY-hU1nhU
+          description: Token given to the user to allow the change of password
+        email:
+          type: string
+          example: customer@email.com
+          description: user email
+    recoveryResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: mail sent
+          description: Message sent
+    recoveryRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          example: example@email.com
+          description: The email that the user wants to recover the password
+    orderInfo:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 400
+          description: The summ of the price of all the products in the order
+        createdAt:
+          type: string
+          example: 2023-01-09T17:37:39.453Z
+          description: Date when the customer's order was created into the database
+        id:
+          type: number
+          example: 2
+          description: Unique auto generated id for the customer's order
+        customerId:
+          type: number
+          example: 3
+          description: Custmer ID which the order belongs
+        customer:
+          $ref: '#/components/schemas/customerResponse'
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique auto generated id for the product in the database
+                example: 2
+              name:
+                type: string
+                description: name of the product
+                example: Cuadro Dvinci
+              description:
+                type: string
+                description: A brief description for the current product
+                example: Cualquiera es muy lindo
+              price:
+                type: number
+                description: name of the product in $ COP
+                example: 3500
+              # discount:
+              #   type: number
+              #   example: null
+              image:
+                type: string
+                description: URL of the image to represent the category
+                example: http://placeimg.com/640/480
+              createdAt:
+                type: string
+                description: Date twhen the product was created into the database
+                example: '2022-03-20T14:55:37.379Z'
+              categoryId:
+                type: string
+                description: Category ID which the product belongs
+                example: 3
+              OrderProduct:
+                $ref: '#/components/schemas/addedItem'
+    addedItem:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          example: 2023-01-09T17:37:39.453Z
+          description: Date when the product was added into the customer's order
+        id:
+          type: number
+          example: 2
+          description: Unique auto generated id for the customer's order added product
+        orderId:
+          description: Unique auto generated id for the customer's order
+          type: number
+          example: 2
+        productId:
+          type: number
+          example: 5
+          description: Product id of the product that was added into the customer's order
+        amount:
+          type: number
+          example: 4
+          description: Specify the ammount of product to be added into the customer's order
+    addItemRrequest:
+      type: object
+      required:
+        - orderId
+        - productId
+        - amount
+      properties:
+        orderId:
+          type: number
+          example: 1
+          description: Order that was created
+        productId:
+          type: number
+          example: 5
+          description: Product Id that wants to be added to the customer's order
+        amount:
+          type: number
+          example: 2
+          description: Specify the ammount of product to be added into the customer's order
+    orderResponse:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 120
+          description: Shows the total ammount for the current customer's order
+        createdAt:
+          type: string
+          example: 2023-01-09T17:37:39.453Z
+          description: Date when the customer's order was created into the database
+        id:
+          type: number
+          example: 2
+          description: Unique auto generated id for the customer's order
+        customerId:
+          type: number
+          example: 3
+          description: Custmer ID which the order belongs
+    newOrder:
+      type: object
+      required:
+        - customerId
+      properties:
+        customerId:
+          type: number
+          example: 3
+          description: Id of the customer who wants to create a new order
+    userEntireResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 3
+          description: Unique auto generated id for the user in the database
+        email:
+          type: string
+          example: pepeppp@mail.com
+          description: Email address which will be used to login into the store
+        password:
+          type: string
+          example: bestPsswrdEver123HASHED
+          description: Password required to login into the store
+        recoveryToken:
+          type: string
+          example: iLostMyPassword
+          description: If the user forgot the password, the recovery one will be send by email, and must match with the generated in this field
+        role:
+          type: string
+          example: admin
+          description: Specify the acces to certain services
+        createdAt:
+          type: string
+          example: 2023-01-09T17:37:39.453Z
+          description: Date when the user was created into the database
+        customer:
+          type: object
+          properties:
+            createdAt:
+              type: string
+              example: 2023-01-09T17:37:39.453Z
+              description: Date when the customer was created into the database
+            id:
+              type: string
+              example: 3
+              description: Unique auto generated id for the customer in the database
+            name:
+              type: string
+              example: Pepe
+              description: Name of the new customer
+            lastName:
+              type: string
+              example: Perez
+              description: Lastname of the new customer
+            phone:
+              type: string
+              example: 3005556789
+              description: Phone number of the new customer
+            userId:
+              type: string
+              example: 5
+              description: Unique auto generated id for the user in the database
+    customerResponse:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          example: 2023-01-09T17:37:39.453Z
+          description: Date when the customer was created into the database
+        id:
+          type: string
+          example: 3
+          description: Unique auto generated id for the customer in the database
+        name:
+          type: string
+          example: Pepe
+          description: Name of the new customer
+        lastName:
+          type: string
+          example: Perez
+          description: Lastname of the new customer
+        phone:
+          type: string
+          example: 3005556789
+          description: Phone number of the new customer
+        user:
+          $ref: '#/components/schemas/userEntireResponse'
+        userId:
+          type: string
+          example: 5
+          description: Unique auto generated id for the user in the database
+    createCustomer:
+      type: object
+      required:
+        - name
+        - lastName
+        - phone
+        - user
+      properties:
+        name:
+          type: string
+          example: Pepe
+          description: Name of the new customer
+        lastName:
+          type: string
+          example: Perez
+          description: Lastname of the new customer
+        phone:
+          type: string
+          example: 3005556789
+          description: Phone number of the new customer
+        user:
+          $ref: '#/components/schemas/user'
+    user:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: pepeppp@mail.com
+          description: Email address which will be used to login into the store
+        password:
+          type: string
+          example: bestPsswrdEver123
+          description: Password required to login into the store
+
+    notFound:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          description: Returns the code of the HTTP request.
+          example: 404
+        error:
+          type: string
+          description: Returns the message of the error code.
+          example: Not found.
+        message:
+          type: string
+          description: Returns an explanation about the error.
+          example: id field is required.
+    badRequest:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          description: Returns the code of the HTTP request.
+          example: 400
+        error:
+          type: string
+          description: Returns the message of the error code.
+          example: Bad Request
+        message:
+          type: string
+          description: Returns an explanation about the error.
+          example: id field is required.
+    updateProduct:
+      type: object
+      properties:
+        name:
+          type: string
+          description: name of the product
+          example: Bike
+        price:
+          type: number
+          description: name of the product in $ COP
+          example: 400000
+        description:
+          type: string
+          description: A brief description for the current product
+          example: An incredible bike.
+        categoryId:
+          type: string
+          example: 3
+          description: Id of the category which the product belongs
+        image:
+          type: string
+          description: URL of the image to represent the product
+          example: http://img.com/540/640
+        category:
+          $ref: '#/components/schemas/categoryResponse'
+    productRequest:
+      type: object
+      required:
+        - name
+        - price
+        - description
+        - categoryId
+        - image
+      properties:
+        name:
+          type: string
+          description: name of the product
+          example: Bike
+        price:
+          type: number
+          description: name of the product in $ COP
+          example: 400000
+        description:
+          type: string
+          description: A brief description for the current product
+          example: An incredible bike.
+        categoryId:
+          type: string
+          example: 3
+          description: Id of the category which the product belongs
+        image:
+          type: string
+          description: URL of the image to represent the product
+          example: http://img.com/540/640
+    productResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique auto generated id for the product in the database
+          example: 2
+        name:
+          type: string
+          description: name of the product
+          example: Cuadro Dvinci
+        description:
+          type: string
+          description: A brief description for the current product
+          example: Cualquiera es muy lindo
+        price:
+          type: number
+          description: name of the product in $ COP
+          example: 3500
+        # discount:
+        #   type: number
+        #   example: null
+        image:
+          type: string
+          description: URL of the image to represent the category
+          example: http://placeimg.com/640/480
+        createdAt:
+          type: string
+          description: Date twhen the product was created into the database
+          example: '2022-03-20T14:55:37.379Z'
+        categoryId:
+          type: string
+          description: Category ID which the product belongs
+          example: 3
+        category:
+          $ref: '#/components/schemas/categoryResponse'
+    getSpecificCategory:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        name:
+          type: string
+          example: Decoracion
+        image:
+          type: string
+          example: http://placeimg.com/640/480
+        createdAt:
+          type: string
+          example: '2022-03-20T17:05:28.482Z'
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/productResponse'
+    categoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: new category name
+        image:
+          type: string
+          example: https://image.com
+    getCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique auto generated id for the category in the database
+          example: 1
+        name:
+          type: string
+          description: Category name
+          example: Decoracion
+        image:
+          type: string
+          description: URL of the image to represent the category
+          example: http://placeimg.com/640/480
+        createdAt:
+          type: string
+          description: Date when the category was created in the database
+          example: '2022-03-20T17:05:28.482Z'
+    categoryRequest:
+      type: object
+      required:
+        - name
+        - image
+      properties:
+        name:
+          type: string
+          example: Decoration
+          description: Name of the new category
+        image:
+          type: string
+          example: http://img.com/540/640
+          description: URL of the image to represent the category
+    categoryResponse:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          description: Date when the category was created in the database
+          example: '2022-03-20T14:55:24.623Z'
+        id:
+          type: string
+          description: Unique auto generated id for the category in the database
+          example: 1
+        name:
+          type: string
+          description: Name of the new category
+          example: Decoration
+        image:
+          type: string
+          description: URL of the image to represent the category
+          example: http://placeimg.com/640/480
+
+
+    ####################------------------#
+    User:
+      type: string
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        petId:
+          type: integer
+          format: int64
+          example: 198772
+        quantity:
+          type: integer
+          format: int32
+          example: 7
+        shipDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: Order Status
+          example: approved
+          enum:
+            - placed
+            - approved
+            - delivered
+        complete:
+          type: boolean
+      xml:
+        name: order
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 100000
+        username:
+          type: string
+          example: fehguy
+        address:
+          type: array
+          xml:
+            name: addresses
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Address'
+      xml:
+        name: customer
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          example: 437 Lytton
+        city:
+          type: string
+          example: Palo Alto
+        state:
+          type: string
+          example: CA
+        zip:
+          type: string
+          example: '94301'
+      xml:
+        name: address
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Dogs
+      xml:
+        name: category
+    UserOld:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        username:
+          type: string
+          example: theUser
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: James
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '12345'
+        phone:
+          type: string
+          example: '12345'
+        userStatus:
+          type: integer
+          description: User Status
+          format: int32
+          example: 1
+      xml:
+        name: user
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: tag
+    Pet:
+      required:
+        - name
+        - photoUrls
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: doggie
+        category:
+          $ref: '#/components/schemas/Category'
+        photoUrls:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            type: string
+            xml:
+              name: photoUrl
+        tags:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Tag'
+        status:
+          type: string
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+      xml:
+        name: pet
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+  requestBodies:
+    Pet:
+      description: Pet object that needs to be added to the store
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Pet'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Pet'
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Authorization
+      in: header

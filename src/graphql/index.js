@@ -1,26 +1,29 @@
 const { ApolloServer } = require('apollo-server-express')
 const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core');
+const { loadFiles } = require('@graphql-tools/load-files');
+const { buildContext } = require('graphql-passport')
+const {typeDefs: scalarTypeDefs, resolvers: scalarResolvers} = require('graphql-scalars')
 
-const typeDefs = `
-  type Query {
-    hello: String
-  }
-`;
+const resolvers = require('./resolvers/resolvers');
 
-const resolvers = {
-  Query: {
-    hello: () => 'hola mundito 7w7'
-  }
-}
 
 const useGraphql = async (app) => {
-  const server = new ApolloServer({
-    typeDefs,
+  const typeDefs = [
+    ...await loadFiles('./src/**/*.graphql'),
+    scalarTypeDefs,
+  ]
+  const allResolvers = [
     resolvers,
+    scalarResolvers,
+  ]
+  const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: allResolvers,
     playground: true,
     plugins: [
       ApolloServerPluginLandingPageGraphQLPlayground
-    ]
+    ],
+    context: ({req, res}) => buildContext({req, res}),
   });
   // Starts running
   await server.start();

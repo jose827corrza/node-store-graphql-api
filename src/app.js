@@ -1,6 +1,10 @@
 
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express')
+const YAML = require('yamljs')
+
+const swaggerDocument = YAML.load('./swagger-doc.yaml')
 
 const routerApi = require('./routes');
 const useGraphql = require('./graphql');
@@ -11,6 +15,7 @@ const { logErrors, errorHandler, boomErrorHandler, ormErrorHandler } = require('
 const createApp = async () => {
   const app = express();
 
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   app.use(express.json());
   app.use(cors());
 
